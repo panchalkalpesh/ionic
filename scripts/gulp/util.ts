@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn } from 'cross-spawn';
 import { NODE_MODULES_ROOT, SRC_ROOT } from './constants';
 import { src, dest } from 'gulp';
 import { dirname, join } from 'path';
@@ -50,6 +50,15 @@ export function createTempTsConfig(includeGlob: string[], target: string, module
   if (config.compilerOptions && config.compilerOptions.outDir) {
     delete config.compilerOptions.outDir;
   }
+
+  // remove linting checks that we do not want in dist
+  if (config.compilerOptions.noUnusedLocals) {
+    delete config.compilerOptions.noUnusedLocals;
+  }
+  if (config.compilerOptions.noUnusedParameters) {
+    delete config.compilerOptions.noUnusedParameters;
+  }
+
   if (config.compilerOptions) {
     config.compilerOptions.module = moduleType;
     config.compilerOptions.target = target;
@@ -60,7 +69,9 @@ export function createTempTsConfig(includeGlob: string[], target: string, module
     config.compilerOptions = Object.assign(config.compilerOptions, overrideCompileOptions);
   }
 
+  // TS represents paths internally with '/' and expects the tsconfig path to be in this format
   let json = JSON.stringify(config, null, 2);
+  json = json.replace(/\\\\/g, '/');
 
   const dirToCreate = dirname(pathToWriteFile);
   ensureDirSync(dirToCreate);
@@ -188,7 +199,7 @@ export function runWebpack(pathToWebpackConfig: string, done: Function) {
   });
 }
 
-export function runAppScriptsServe(testOrDemoName: string, appEntryPoint: string, appNgModulePath: string, srcDir: string, distDir: string, tsConfig: string, ionicAngularDir: string, sassConfigPath: string, copyConfigPath: string, watchConfigPath: string) {
+export function runAppScriptsServe(testOrDemoName: string, appEntryPoint: string, appNgModulePath: string, srcDir: string, distDir: string, tsConfig: string, ionicAngularDir: string, sassConfigPath: string, copyConfigPath: string, watchConfigPath: string, devApp: boolean) {
   console.log('Running ionic-app-scripts serve with', testOrDemoName);
   const deepLinksDir = dirname(dirname(appNgModulePath));
   let scriptArgs = [
@@ -205,6 +216,9 @@ export function runAppScriptsServe(testOrDemoName: string, appEntryPoint: string
     '--copy', copyConfigPath,
     '--enableLint', 'false'
   ];
+  if (devApp) {
+    scriptArgs.push('--bonjour');
+  }
 
   if (watchConfigPath) {
     scriptArgs.push('--watch');
@@ -217,9 +231,11 @@ export function runAppScriptsServe(testOrDemoName: string, appEntryPoint: string
   }
 
   return new Promise((resolve, reject) => {
-    const args = ['./node_modules/.bin/ionic-app-scripts'].concat(scriptArgs);
-    console.log(`node ${args.join(' ')}`);
-    const spawnedCommand = spawn('node', args, {stdio: 'inherit'});
+    let pathToAppScripts = join(NODE_MODULES_ROOT, '.bin', 'ionic-app-scripts');
+    pathToAppScripts = process.platform === 'win32' ? pathToAppScripts + '.cmd' : pathToAppScripts;
+
+    const spawnedCommand = spawn(pathToAppScripts, scriptArgs, {stdio: 'inherit'});
+    console.log(`${pathToAppScripts} ${scriptArgs.join(' ')}`);
 
     spawnedCommand.on('close', (code: number) => {
       if (code === 0) {
@@ -345,9 +361,11 @@ export function getFolderInfo() {
     componentName = folderSplit[0];
     componentTest = (folderSplit.length > 1 ? folderSplit[1] : 'basic');
   }
+  const devApp = argv.devapp !== undefined;
   return {
     componentName: componentName,
-    componentTest: componentTest
+    componentTest: componentTest,
+    devApp: devApp
   };
 }
 

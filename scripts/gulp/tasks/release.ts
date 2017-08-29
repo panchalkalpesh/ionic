@@ -1,4 +1,5 @@
-import { exec, spawnSync, spawn } from 'child_process';
+import { exec, spawnSync } from 'child_process';
+import { spawn } from 'cross-spawn';
 import { writeFileSync } from 'fs';
 import * as changelog from 'conventional-changelog';
 import * as GithubApi from 'github';
@@ -86,7 +87,7 @@ task('release.publishGithubRelease', (done: Function) => {
   })
   .pipe(obj(function(file, enc, cb){
     github.releases.createRelease({
-      owner: 'driftyco',
+      owner: 'ionic-team',
       repo: 'ionic',
       target_commitish: 'master',
       tag_name: 'v' + packageJSON.version,

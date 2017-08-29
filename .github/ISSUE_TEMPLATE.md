@@ -1,5 +1,8 @@
+**Resources:**
+Before submitting an issue, please consult our troubleshooting guide (http://ionicframework.com/docs/troubleshooting/) and developer resources (http://ionicframework.com/docs/developer-resources/)
+
 **Ionic version:**  (check one with "x")
-[ ] **1.x** (For Ionic 1.x issues, please use https://github.com/driftyco/ionic-v1)
+[ ] **1.x** (For Ionic 1.x issues, please use https://github.com/ionic-team/ionic-v1)
 [ ] **2.x**
 [ ] **3.x**
 
@@ -19,7 +22,7 @@
 
 For Ionic V1 issues - http://plnkr.co/edit/Xo1QyAUx35ny1Xf9ODHx?p=preview
 
-For Ionic issues - http://plnkr.co/edit/z0DzVL?p=preview
+For Ionic issues - http://plnkr.co/edit/cpeRJs?p=preview
 -->
 
 **Related code:**
